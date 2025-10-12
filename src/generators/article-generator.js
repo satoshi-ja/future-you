@@ -25,7 +25,7 @@ function parseJsonContent(content, context) {
 export async function generateArticle(formData, persona, scenario) {
   const client = getOpenAI();
 
-  const gptModel = process.env.GPT_MODEL || 'gpt-4o-mini';
+  const gptModel = process.env.GPT_MODEL || 'gpt-5-2025-08-07';
 
   const response = await client.chat.completions.create({
     model: gptModel,
