@@ -120,6 +120,23 @@ app.get('/api/search/:nickname', async (req, res) => {
   }
 });
 
+// レコード削除API
+app.delete('/api/record/:id', async (req, res) => {
+  try {
+    const record = await FutureYouMessage.findByIdAndDelete(req.params.id);
+
+    if (!record) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    res.json({ success: true, message: 'Record deleted successfully' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('DELETE /api/record/:id error:', error);
+    res.status(500).json({ error: message });
+  }
+});
+
 // ヘルスチェックAPI
 app.get('/api/health', (req, res) => {
   const dbStatus = getConnectionStatus();
