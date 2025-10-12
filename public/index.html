@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Future You</title>
+    <style>
+      /* ========================================
+         🍎 Apple Design System - Reset & Base
+         ======================================== */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      :root {
+        /* Apple Color Palette */
+        --apple-white: #FFFFFF;
+        --apple-gray-1: #F5F5F7;
+        --apple-gray-2: #E8E8ED;
+        --apple-gray-3: #D2D2D7;
+        --apple-gray-4: #86868B;
+        --apple-gray-5: #6E6E73;
+        --apple-gray-6: #1D1D1F;
+        --apple-black: #000000;
+        
+        /* Apple Blue */
+        --apple-blue: #007AFF;
+        --apple-blue-hover: #0051D5;
+        
+        /* Spacing System (Apple's 4pt grid) */
+        --space-xs: 8px;
+        --space-sm: 16px;
+        --space-md: 24px;
+        --space-lg: 40px;
+        --space-xl: 64px;
+        --space-2xl: 96px;
+        
+        /* Typography Scale */
+        --font-weight-regular: 400;
+        --font-weight-medium: 500;
+        --font-weight-semibold: 600;
+        --font-weight-bold: 700;
+        
+        /* Border Radius */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+        --radius-xl: 24px;
+        
+        /* Transitions */
+        --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+        background: var(--apple-gray-1);
+        color: var(--apple-gray-6);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        line-height: 1.47059;
+        letter-spacing: -0.022em;
+      }
+      
+      /* ========================================
+         🎨 Layout - Minimal & Spacious
+         ======================================== */
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: var(--space-xl) var(--space-md);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      
+      main {
+        width: 100%;
+        max-width: 692px;
+        margin: 0 auto;
+      }
+      
+      /* ========================================
+         ✨ Typography - Bold & Clear Hierarchy
+         ======================================== */
+      .hero-section {
+        text-align: center;
+        margin-bottom: var(--space-2xl);
+        animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .hero-title {
+        font-size: clamp(40px, 7vw, 80px);
+        font-weight: var(--font-weight-bold);
+        line-height: 1.05;
+        letter-spacing: -0.015em;
+        color: var(--apple-gray-6);
+        margin-bottom: var(--space-sm);
+      }
+      
+      .hero-subtitle {
+        font-size: clamp(21px, 3vw, 28px);
+        font-weight: var(--font-weight-regular);
+        line-height: 1.381;
+        letter-spacing: 0.007em;
+        color: var(--apple-gray-5);
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      
+      /* ========================================
+         📝 Form - Clean & Spacious
+         ======================================== */
+      .form-wrapper {
+        background: var(--apple-white);
+        border-radius: var(--radius-xl);
+        padding: clamp(var(--space-lg), 6vw, 64px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04),
+                    0 8px 32px rgba(0, 0, 0, 0.06);
+        animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+      }
+      
+      .form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+      }
+      
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+      }
+      
+      label {
+        font-size: 17px;
+        font-weight: var(--font-weight-semibold);
+        color: var(--apple-gray-6);
+        letter-spacing: -0.022em;
+      }
+      
+      input[type="text"],
+      select,
+      textarea {
+        width: 100%;
+        font-family: inherit;
+        font-size: 17px;
+        color: var(--apple-gray-6);
+        background: var(--apple-white);
+        border: 1px solid var(--apple-gray-3);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        transition: all var(--transition-fast);
+        -webkit-appearance: none;
+        appearance: none;
+        will-change: border-color, box-shadow;
+      }
+      
+      input[type="text"]:hover:not(:focus),
+      select:hover:not(:focus),
+      textarea:hover:not(:focus) {
+        border-color: var(--apple-gray-4);
+      }
+      
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.47059;
+      }
+      
+      input[type="text"]:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--apple-blue);
+        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+      }
+      
+      input[type="text"]::placeholder,
+      textarea::placeholder {
+        color: var(--apple-gray-4);
+      }
+      
+      /* ========================================
+         🔘 Buttons - Premium & Interactive
+         ======================================== */
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 56px;
+        padding: 14px 32px;
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: var(--font-weight-semibold);
+        color: var(--apple-white);
+        background: var(--apple-blue);
+        border: none;
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        letter-spacing: -0.022em;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      .button:hover {
+        background: var(--apple-blue-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
+      }
+      
+      .button:active {
+        transform: scale(0.98);
+      }
+      
+      .button:focus-visible {
+        outline: 2px solid var(--apple-blue);
+        outline-offset: 4px;
+      }
+      
+      .button:disabled {
+        background: var(--apple-gray-3);
+        color: var(--apple-gray-4);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      .button-secondary {
+        background: var(--apple-gray-1);
+        color: var(--apple-gray-6);
+        border: 1px solid var(--apple-gray-3);
+      }
+      
+      .button-secondary:hover {
+        background: var(--apple-gray-2);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      }
+      
+      /* ========================================
+         💫 States & Loading
+         ======================================== */
+      .state {
+        text-align: center;
+      }
+      
+      .hidden {
+        display: none;
+      }
+      
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto var(--space-lg);
+        border: 3px solid var(--apple-gray-2);
+        border-top-color: var(--apple-blue);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      
+      .loading-title {
+        font-size: clamp(28px, 5vw, 40px);
+        font-weight: var(--font-weight-bold);
+        line-height: 1.1;
+        letter-spacing: -0.015em;
+        color: var(--apple-gray-6);
+        margin-bottom: var(--space-sm);
+      }
+      
+      .loading-text {
+        font-size: 19px;
+        line-height: 1.47059;
+        color: var(--apple-gray-5);
+        letter-spacing: 0.012em;
+      }
+      
+      /* ========================================
+         ✅ Success State
+         ======================================== */
+      .success-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto var(--space-md);
+        background: var(--apple-blue);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      
+      .success-icon::after {
+        content: "✓";
+        font-size: 32px;
+        color: var(--apple-white);
+        font-weight: var(--font-weight-bold);
+      }
+      
+      .success-title {
+        font-size: clamp(28px, 5vw, 40px);
+        font-weight: var(--font-weight-bold);
+        line-height: 1.1;
+        letter-spacing: -0.015em;
+        color: var(--apple-gray-6);
+        margin-bottom: var(--space-sm);
+      }
+      
+      .success-text {
+        font-size: 19px;
+        line-height: 1.47059;
+        color: var(--apple-gray-5);
+        letter-spacing: 0.012em;
+        margin-bottom: var(--space-lg);
+      }
+      
+      .success-actions {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        max-width: 380px;
+        margin: 0 auto;
+      }
+      
+      /* ========================================
+         ⚠️ Error Messages
+         ======================================== */
+      .error-box {
+        margin-top: var(--space-md);
+        padding: var(--space-sm);
+        background: rgba(255, 59, 48, 0.08);
+        border: 1px solid rgba(255, 59, 48, 0.2);
+        border-radius: var(--radius-md);
+        color: #D70015;
+        font-size: 15px;
+        line-height: 1.47059;
+        text-align: left;
+        display: none;
+      }
+      
+      /* ========================================
+         🎬 Animations - Smooth & Delightful
+         ======================================== */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(32px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.5);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      
+      @keyframes shimmer {
+        0% {
+          background-position: -1000px 0;
+        }
+        100% {
+          background-position: 1000px 0;
+        }
+      }
+      
+      /* Smooth scroll behavior */
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      /* Enhanced focus states for accessibility */
+      *:focus-visible {
+        outline: 2px solid var(--apple-blue);
+        outline-offset: 4px;
+        border-radius: var(--radius-sm);
+      }
+      
+      /* Reduced motion for accessibility */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      
+      /* ========================================
+         📱 Responsive Design
+         ======================================== */
+      @media (max-width: 734px) {
+        .container {
+          padding: var(--space-lg) var(--space-sm);
+        }
+        
+        .hero-section {
+          margin-bottom: var(--space-xl);
+        }
+        
+        .form-wrapper {
+          padding: var(--space-lg);
+        }
+        
+        .form-grid {
+          gap: var(--space-md);
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .form-field {
+          gap: 6px;
+        }
+        
+        label {
+          font-size: 15px;
+        }
+        
+        input[type="text"],
+        select,
+        textarea {
+          font-size: 16px; /* Prevents zoom on iOS */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <main>
+        <!-- ========================================
+             Form State
+             ======================================== -->
+        <section id="form-state" class="state">
+          <div class="hero-section">
+            <h1 class="hero-title">Future You</h1>
+            <p class="hero-subtitle">3年後のあなたからメッセージを受け取りましょう</p>
+          </div>
+          
+          <div class="form-wrapper">
+            <form id="future-form" class="form-grid">
+              <div class="form-field">
+                <label for="q3">性別（任意）</label>
+                <select id="q3" name="q3">
+                  <option value="">選択してください</option>
+                  <option value="female">女性</option>
+                  <option value="male">男性</option>
+                  <option value="nonbinary">ノンバイナリー</option>
+                  <option value="prefer_not_to_say">回答しない</option>
+                </select>
+              </div>
+              
+              <div class="form-field">
+                <label for="q4">3年後の理想の仕事イメージ</label>
+                <textarea id="q4" name="q4" required minlength="10" placeholder="グローバルな開発チームを率いて、革新的なAIプロダクトを成功させている。"></textarea>
+              </div>
+              
+              <div class="form-field">
+                <label for="q5">3年後の理想のプライベートイメージ</label>
+                <textarea id="q5" name="q5" required minlength="10" placeholder="家族と過ごす時間も大切にしながら、自分の趣味も充実している。"></textarea>
+              </div>
+              
+              <div class="form-field">
+                <label for="q6">3年後の理想の人間関係</label>
+                <textarea id="q6" name="q6" required minlength="10" placeholder="信頼し合える仲間に囲まれ、それぞれの強みを尊重しながら成長している。"></textarea>
+              </div>
+              
+              <div class="form-field">
+                <label for="q7">大切にしている価値観</label>
+                <textarea id="q7" name="q7" required minlength="5" placeholder="誠実さ、挑戦、仲間との協力"></textarea>
+              </div>
+              
+              <div class="form-field">
+                <label for="q8">ニックネーム</label>
+                <input id="q8" name="q8" type="text" required minlength="2" maxlength="40" placeholder="みらい太郎" />
+              </div>
+              
+              <button type="submit" id="submit-button" class="button">未来の自分に会いに行く</button>
+            </form>
+            <div class="error-box" id="form-error"></div>
+          </div>
+        </section>
+
+        <!-- ========================================
+             Loading State
+             ======================================== -->
+        <section id="loading-state" class="state hidden">
+          <div class="form-wrapper">
+            <div class="loading-spinner"></div>
+            <h2 class="loading-title">未来からのメッセージを準備中...</h2>
+            <p class="loading-text">GPT-4がストーリーを考え、Sora2が映像を生成しています。数十秒お待ちください。</p>
+          </div>
+        </section>
+
+        <!-- ========================================
+             Success State
+             ======================================== -->
+        <section id="success-state" class="state hidden">
+          <div class="form-wrapper">
+            <div class="success-icon"></div>
+            <h2 class="success-title">メッセージの準備ができました</h2>
+            <p class="success-text" id="success-message"></p>
+            <p class="success-text" id="success-detail"></p>
+            <div class="success-actions">
+              <button type="button" id="open-page" class="button">生成されたページを開く</button>
+              <button type="button" id="create-again" class="button button-secondary">もう一度作成する</button>
+            </div>
+            <div class="error-box" id="success-error"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const formState = document.getElementById('form-state');
+      const loadingState = document.getElementById('loading-state');
+      const successState = document.getElementById('success-state');
+      const form = document.getElementById('future-form');
+      const submitButton = document.getElementById('submit-button');
+      const formError = document.getElementById('form-error');
+      const successMessage = document.getElementById('success-message');
+      const successDetail = document.getElementById('success-detail');
+      const successError = document.getElementById('success-error');
+      const openPageBtn = document.getElementById('open-page');
+      const createAgainBtn = document.getElementById('create-again');
+
+      const showState = (state) => {
+        formState.classList.add('hidden');
+        loadingState.classList.add('hidden');
+        successState.classList.add('hidden');
+        state.classList.remove('hidden');
+      };
+
+      const handleError = (message, context = 'form') => {
+        if (context === 'form') {
+          formError.textContent = message;
+          formError.style.display = 'block';
+        } else {
+          successError.textContent = message;
+          successError.style.display = 'block';
+        }
+      };
+
+      const resetErrors = () => {
+        formError.textContent = '';
+        formError.style.display = 'none';
+        successError.textContent = '';
+        successError.style.display = 'none';
+      };
+
+      let latestPageUrl = null;
+      let autoOpenTimer = null;
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        resetErrors();
+
+        const payload = {
+          q3: form.q3.value,
+          q4: form.q4.value.trim(),
+          q5: form.q5.value.trim(),
+          q6: form.q6.value.trim(),
+          q7: form.q7.value.trim(),
+          q8: form.q8.value.trim(),
+        };
+
+        if (!payload.q4 || !payload.q5 || !payload.q6 || !payload.q7 || !payload.q8) {
+          handleError('必須項目をすべて入力してください。');
+          return;
+        }
+
+        submitButton.disabled = true;
+        showState(loadingState);
+
+        try {
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const message = errorBody?.error || '生成中にエラーが発生しました。時間を置いて再度お試しください。';
+            throw new Error(message);
+          }
+
+          const data = await response.json();
+          latestPageUrl = data.pageUrl;
+
+          successMessage.textContent = data.message || '未来からのメッセージが届きました。';
+          successDetail.textContent = '2秒後に自動で新しいページが開きます。すぐに開く場合はボタンを押してください。';
+          showState(successState);
+
+          if (autoOpenTimer) {
+            clearTimeout(autoOpenTimer);
+          }
+          autoOpenTimer = setTimeout(() => {
+            if (latestPageUrl) {
+              window.open(latestPageUrl, '_blank');
+            }
+          }, 2000);
+        } catch (error) {
+          submitButton.disabled = false;
+          showState(formState);
+          handleError(error.message || '未知のエラーが発生しました。');
+        }
+      });
+
+      openPageBtn.addEventListener('click', () => {
+        if (latestPageUrl) {
+          window.open(latestPageUrl, '_blank');
+        } else {
+          handleError('ページURLが取得できませんでした。', 'success');
+        }
+      });
+
+      createAgainBtn.addEventListener('click', () => {
+        resetErrors();
+        latestPageUrl = null;
+        submitButton.disabled = false;
+        showState(formState);
+      });
+    </script>
+  </body>
+</html>

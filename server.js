@@ -1,0 +1,113 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+
+import { generateFutureYouContent } from './src/main-pipeline.js';
+import { connectDB, getConnectionStatus } from './src/db/connection.js';
+import { FutureYouMessage } from './src/db/schema.js';
+
+dotenv.config();
+
+const app = express();
+const port = Number(process.env.PORT) || 5173;
+const publicDir = path.resolve(process.cwd(), 'public');
+const outputDir = path.resolve(process.cwd(), 'output');
+
+// MongoDB接続
+await connectDB();
+
+app.use(cors());
+app.use(express.json({ limit: '1mb' }));
+app.use(express.static(publicDir));
+app.use('/output', express.static(outputDir));
+
+// メイン生成API
+app.post('/api/generate', async (req, res) => {
+  try {
+    const metadata = {
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('user-agent'),
+    };
+
+    const result = await generateFutureYouContent(req.body, metadata);
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('POST /api/generate error:', error);
+    res.status(500).json({ error: message });
+  }
+});
+
+// 生成履歴取得API
+app.get('/api/history', async (req, res) => {
+  try {
+    const { limit = 10, status } = req.query;
+    const query = status ? { status } : {};
+
+    const history = await FutureYouMessage.find(query)
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .select('-__v');
+
+    res.json({ success: true, count: history.length, data: history });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('GET /api/history error:', error);
+    res.status(500).json({ error: message });
+  }
+});
+
+// 個別レコード取得API
+app.get('/api/record/:id', async (req, res) => {
+  try {
+    const record = await FutureYouMessage.findById(req.params.id).select('-__v');
+
+    if (!record) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    res.json({ success: true, data: record });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('GET /api/record/:id error:', error);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ニックネーム検索API
+app.get('/api/search/:nickname', async (req, res) => {
+  try {
+    const records = await FutureYouMessage.findByNickname(req.params.nickname)
+      .select('-__v');
+
+    res.json({ success: true, count: records.length, data: records });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('GET /api/search/:nickname error:', error);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ヘルスチェックAPI
+app.get('/api/health', (req, res) => {
+  const dbStatus = getConnectionStatus();
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: {
+      connected: dbStatus.isConnected,
+      readyState: dbStatus.readyState,
+    },
+  });
+});
+
+app.use((err, _req, res, _next) => {
+  const message = err instanceof Error ? err.message : 'Internal Server Error';
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: message });
+});
+
+app.listen(port, () => {
+  console.log(`✅ Future You server running on http://localhost:${port}`);
+});
