@@ -48,6 +48,7 @@ const futureYouMessageSchema = new Schema({
   video: {
     videoId: String,
     videoUrl: String,
+    localPath: String, // ローカルに保存された動画ファイルパス
     prompt: String,
     status: {
       type: String,

@@ -40,6 +40,9 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
   const nickname = escapeHtml(formData?.q8 ?? '');
   const personaAchievements = Array.isArray(persona?.achievements) ? persona.achievements.map(escapeHtml) : [];
   const scenarioAdvice = Array.isArray(scenario?.advice) ? scenario.advice.map(escapeHtml) : [];
+  const safeVideoUrl = videoUrl
+    ? escapeHtml(videoUrl)
+    : `/output/${escapeHtml(videoId ?? '')}.mp4`;
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -615,7 +618,7 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
     <section class="video-section">
       <div class="video-container">
         <div class="video-wrapper">
-          <video src="${escapeHtml(videoUrl ?? '')}" controls autoplay muted playsinline></video>
+          <video src="${safeVideoUrl}" controls autoplay muted playsinline></video>
         </div>
         <p class="video-caption">未来のあなたから、今のあなたへ</p>
       </div>

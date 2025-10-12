@@ -90,11 +90,44 @@ export async function generateFutureYouContent(formData, metadata = {}) {
     const video = USE_MOCK ? await generateMockVideo() : await generateVideo(videoPrompt);
     console.log('   ✅ 動画生成完了');
 
-    const videoUrl = video.url || (video._isMock ? null : `https://api.openai.com/v1/videos/${video.id}/content`);
+    // 動画ファイルをダウンロードして保存
+    let localVideoPath = null;
+    let publicVideoUrl = null;
+    if (!USE_MOCK && video.id) {
+      try {
+        console.log('   📥 動画ファイルをダウンロード中...');
+        const videoUrl = `https://api.openai.com/v1/videos/${video.id}/content`;
+        const response = await fetch(videoUrl, {
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          }
+        });
+
+        if (response.ok) {
+          const videoBuffer = Buffer.from(await response.arrayBuffer());
+          const videoFilename = `${video.id}.mp4`;
+          localVideoPath = path.join(OUTPUT_DIR, videoFilename);
+          await fs.mkdir(OUTPUT_DIR, { recursive: true });
+          await fs.writeFile(localVideoPath, videoBuffer);
+          publicVideoUrl = `/output/${videoFilename}`;
+          console.log(`   ✅ 動画保存完了: ${localVideoPath}`);
+        } else {
+          console.warn(`   ⚠️  動画ダウンロード失敗: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('   ❌ 動画ダウンロードエラー:', error);
+      }
+    }
+
+    const videoUrl =
+      publicVideoUrl ||
+      video.url ||
+      (video._isMock ? null : `https://api.openai.com/v1/videos/${video.id}/content`);
 
     dbRecord.video = {
       videoId: video.id,
       videoUrl,
+      localPath: localVideoPath,
       prompt: videoPrompt,
       status: 'completed',
       createdAt: dbRecord.video.createdAt,

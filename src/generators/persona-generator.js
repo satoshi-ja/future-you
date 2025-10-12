@@ -40,7 +40,7 @@ export async function generatePersona(formData) {
       {
         role: 'user',
         content: `以下の情報から、3年後の成功した姿をJSON形式で出力してください。\n
-【理想の仕事】
+${formData.q3 ? `【性別】\n${formData.q3 === 'female' ? '女性' : formData.q3 === 'male' ? '男性' : 'その他'}\n\n` : ''}【理想の仕事】
 ${formData.q4}
 
 【理想のプライベート】
@@ -54,6 +54,7 @@ ${formData.q7}
 
 出力形式:
 {
+  "gender": "${formData.q3 || 'unspecified'}",
   "age": "3年後の推定年齢",
   "career": "具体的な職業",
   "workplace": "職場環境の詳細な描写（映像的に）",

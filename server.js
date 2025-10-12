@@ -39,6 +39,37 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
+// 動画プロキシエンドポイント（OpenAI APIから動画を取得してストリーム配信）
+app.get('/api/video/:videoId', async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const apiKey = process.env.OPENAI_API_KEY;
+    const videoUrl = `https://api.openai.com/v1/videos/${videoId}/content`;
+
+    const response = await fetch(videoUrl, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch video: ${response.status}`);
+    }
+
+    // ヘッダーを設定してストリーム配信
+    res.setHeader('Content-Type', 'video/mp4');
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    // レスポンスボディをそのままパイプ
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('GET /api/video/:videoId error:', error);
+    res.status(500).json({ error: message });
+  }
+});
+
 // 生成履歴取得API
 app.get('/api/history', async (req, res) => {
   try {

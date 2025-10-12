@@ -38,18 +38,20 @@ export async function generateVideo(prompt) {
   // Create video generation job
   let video;
   try {
+    // Use FormData for multipart/form-data
+    const formData = new FormData();
+    formData.append('model', soraModel);
+    formData.append('prompt', prompt);
+    formData.append('size', '1280x720');
+    formData.append('seconds', '8');
+
     const createResponse = await fetchWithRetry(baseUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
+        // Note: Don't set Content-Type header, let fetch set it automatically with boundary
       },
-      body: JSON.stringify({
-        model: soraModel,
-        prompt,
-        size: '1280x720',
-        seconds: '8'
-      })
+      body: formData
     });
 
     if (!createResponse.ok) {
@@ -68,13 +70,13 @@ export async function generateVideo(prompt) {
   console.log('   進捗:');
 
   let lastLogged = -1;
-  const maxPollingTime = 600000; // 10 minutes
+  const maxPollingTime = 1800000; // 30 minutes
   const startTime = Date.now();
 
   // Poll for video completion
   while (true) {
     if (Date.now() - startTime > maxPollingTime) {
-      throw new Error('動画生成がタイムアウトしました（10分以上）');
+      throw new Error('動画生成がタイムアウトしました（30分以上）');
     }
 
     try {
@@ -103,6 +105,11 @@ export async function generateVideo(prompt) {
       lastLogged = progressValue;
     }
 
+    // デバッグ: 進捗が99以上でもcompletedでない場合、ステータスを表示
+    if (progressValue >= 99 && video.status !== 'completed') {
+      console.log(`\n   [DEBUG] Progress: ${progressValue}%, Status: ${video.status}`);
+    }
+
     if (video.status === 'completed') {
       process.stdout.write('\n');
       break;
@@ -113,7 +120,9 @@ export async function generateVideo(prompt) {
       throw new Error(`動画生成失敗: ${errorMessage}`);
     }
 
-    await sleep(2000);
+    // 99%以上の場合はポーリング間隔を短くする
+    const pollInterval = progressValue >= 99 ? 5000 : 2000;
+    await sleep(pollInterval);
   }
 
   // Add content URL for completed video

@@ -25,16 +25,16 @@ export async function generateVideoPrompt(persona, scenario) {
       {
         role: 'system',
         content:
-          'あなたはSora2のプロンプトエンジニアです。\n以下を含む映像的なプロンプトを英語で1文で作成してください：\n- Medium shot（推奨）\n- Subject（人物の詳細）\n- Setting（環境）\n- Lighting（自然光など）\n- Action（カメラに向かって語りかける仕草）\n- Mood（温かい、励ましの雰囲気）\n- Technical（cinematic, soft focus など）\n\n80-120語程度で。',
+          'あなたはSora2のプロンプトエンジニアです。\n以下を含む映像的なプロンプトを英語で1文で作成してください：\n- Medium shot（推奨）\n- Subject（人物の詳細）\n- Setting（環境）\n- Lighting（自然光など）\n- Action（カメラに向かって語りかける仕草）\n- Mood（温かい、励ましの雰囲気）\n- Technical（cinematic, soft focus など）\n- Audio: "speaking in Japanese" を必ず含める\n\n80-120語程度で。',
       },
       {
         role: 'user',
-        content: `職業: ${persona.career}
+        content: `${persona.gender ? `性別: ${persona.gender === 'female' ? 'woman' : persona.gender === 'male' ? 'man' : 'person'}\n` : ''}職業: ${persona.career}
 職場: ${persona.workplace}
 性格: ${persona.personality}
 メッセージ: ${scenario.summary}
 
-この人物が、カメラに向かって温かく励ましのメッセージを伝えるシーンのプロンプトを作成してください。`,
+この人物が、カメラに向かって温かく励ましのメッセージを伝えるシーンのプロンプトを作成してください。${persona.gender ? `人物は必ず${persona.gender === 'female' ? 'woman' : persona.gender === 'male' ? 'man' : 'person'}として描写してください。` : ''}`,
       },
     ],
   });
