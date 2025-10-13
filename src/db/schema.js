@@ -67,6 +67,30 @@ const futureYouMessageSchema = new Schema({
     pageUrl: String,
   },
 
+  // チャット履歴
+  chat: {
+    history: [{
+      role: {
+        type: String,
+        enum: ['user', 'assistant'],
+        required: true,
+      },
+      content: {
+        type: String,
+        required: true,
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+    }],
+    lastMessageAt: Date,
+    messageCount: {
+      type: Number,
+      default: 0,
+    },
+  },
+
   // メタデータ
   metadata: {
     ipAddress: String,

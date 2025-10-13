@@ -143,6 +143,7 @@ export async function generateFutureYouContent(formData, metadata = {}) {
       article,
       videoUrl,
       videoId: video.id,
+      recordId: dbRecord._id.toString(),
     });
     console.log('   ✅ HTML生成完了');
 

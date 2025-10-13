@@ -6,6 +6,7 @@ import path from 'path';
 import { generateFutureYouContent } from './src/main-pipeline.js';
 import { connectDB, getConnectionStatus } from './src/db/connection.js';
 import { FutureYouMessage } from './src/db/schema.js';
+import { generateChatResponse } from './src/generators/chat-generator.js';
 
 dotenv.config();
 
@@ -134,6 +135,65 @@ app.delete('/api/record/:id', async (req, res) => {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
     console.error('DELETE /api/record/:id error:', error);
     res.status(500).json({ error: message });
+  }
+});
+
+// チャットAPI
+app.post('/api/chat/:recordId', async (req, res) => {
+  try {
+    const { recordId } = req.params;
+    const { message } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // レコードを取得
+    const record = await FutureYouMessage.findById(recordId);
+
+    if (!record) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    if (record.status !== 'completed') {
+      return res.status(400).json({ error: 'Cannot chat with incomplete record' });
+    }
+
+    // 会話履歴を取得（最新10件）
+    const conversationHistory = record.chat?.history || [];
+    const recentHistory = conversationHistory.slice(-10);
+
+    // GPT-5で応答を生成
+    const reply = await generateChatResponse(
+      recentHistory,
+      record.persona,
+      record.scenario,
+      message
+    );
+
+    // 会話履歴を更新
+    const newHistory = [
+      ...conversationHistory,
+      { role: 'user', content: message, timestamp: new Date() },
+      { role: 'assistant', content: reply, timestamp: new Date() }
+    ];
+
+    await FutureYouMessage.findByIdAndUpdate(recordId, {
+      'chat.history': newHistory,
+      'chat.lastMessageAt': new Date(),
+      'chat.messageCount': newHistory.length / 2,
+    });
+
+    res.json({ success: true, reply });
+  } catch (error) {
+    const status =
+      (typeof error === 'object' && error && 'statusCode' in error && Number(error.statusCode)) ||
+      (typeof error === 'object' && error && 'status' in error && Number(error.status)) ||
+      (error instanceof Error && /quota/i.test(error.message) ? 429 : 500);
+
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('POST /api/chat/:recordId error:', error);
+    res.status(status >= 400 && status <= 599 ? status : 500).json({ error: message });
   }
 });
 

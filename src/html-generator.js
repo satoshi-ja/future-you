@@ -56,11 +56,12 @@ function renderSummary(summary = []) {
   `;
 }
 
-export function generateHTMLPage({ formData, persona, scenario, article, videoUrl, videoId }) {
+export function generateHTMLPage({ formData, persona, scenario, article, videoUrl, videoId, recordId }) {
   const nickname = escapeHtml(formData?.q8 ?? '');
   const personaAchievements = Array.isArray(persona?.achievements) ? persona.achievements.map(escapeHtml) : [];
   const scenarioAdvice = Array.isArray(scenario?.advice) ? scenario.advice.map(escapeHtml) : [];
   const safeVideoUrl = videoUrl ? escapeHtml(videoUrl) : `/output/${escapeHtml(videoId ?? '')}.mp4`;
+  const safeRecordId = escapeHtml(recordId ?? '');
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -606,6 +607,206 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
           transition-duration: 0.01ms !important;
         }
       }
+
+      /* ============================================
+         CHAT SECTION
+         ============================================ */
+      .chat-section {
+        background: var(--color-background-secondary);
+        padding: var(--section-spacing-mobile) 0;
+        margin-top: var(--section-spacing-mobile);
+      }
+
+      @media (min-width: 1024px) {
+        .chat-section {
+          padding: var(--section-spacing-desktop) 0;
+          margin-top: var(--section-spacing-desktop);
+        }
+      }
+
+      .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--color-background);
+        border-radius: var(--radius-xlarge);
+        box-shadow: var(--shadow-image);
+        overflow: hidden;
+      }
+
+      .chat-header {
+        background: linear-gradient(135deg, var(--color-accent-blue), var(--color-accent-gold));
+        padding: var(--space-6);
+        text-align: center;
+      }
+
+      .chat-header h3 {
+        color: #ffffff;
+        font-size: var(--font-size-title3);
+        font-weight: var(--font-weight-title3);
+        margin: 0;
+      }
+
+      .chat-messages {
+        padding: var(--space-6);
+        min-height: 300px;
+        max-height: 500px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+
+      .chat-message {
+        display: flex;
+        gap: var(--space-4);
+        animation: slideUp var(--duration-normal) var(--ease-apple);
+      }
+
+      .chat-message.user {
+        flex-direction: row-reverse;
+      }
+
+      .chat-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-accent-gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #ffffff;
+        flex-shrink: 0;
+      }
+
+      .chat-message.user .chat-avatar {
+        background: var(--color-accent-blue);
+      }
+
+      .chat-bubble {
+        background: var(--color-background-secondary);
+        padding: var(--space-4);
+        border-radius: var(--radius-large);
+        max-width: 70%;
+        word-wrap: break-word;
+      }
+
+      .chat-message.user .chat-bubble {
+        background: var(--color-accent-blue);
+        color: #ffffff;
+      }
+
+      .chat-bubble p {
+        margin: 0;
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-body);
+      }
+
+      .chat-timestamp {
+        font-size: var(--font-size-caption2);
+        color: var(--color-label-tertiary);
+        margin-top: 4px;
+      }
+
+      .chat-suggested-questions {
+        padding: var(--space-4) var(--space-6);
+        background: var(--color-background-tertiary);
+        border-top: 1px solid var(--color-separator);
+      }
+
+      .chat-suggested-questions p {
+        font-size: var(--font-size-caption1);
+        color: var(--color-label-secondary);
+        margin: 0 0 var(--space-4) 0;
+      }
+
+      .chat-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chat-suggestion-btn {
+        background: var(--color-background);
+        border: 1px solid var(--color-separator);
+        border-radius: 16px;
+        padding: 8px 16px;
+        font-size: var(--font-size-subheadline);
+        color: var(--color-accent-blue);
+        cursor: pointer;
+        transition: all var(--duration-normal) var(--ease-apple);
+      }
+
+      .chat-suggestion-btn:hover {
+        background: var(--color-accent-blue);
+        color: #ffffff;
+        border-color: var(--color-accent-blue);
+      }
+
+      .chat-input-area {
+        padding: var(--space-6);
+        background: var(--color-background-tertiary);
+        border-top: 1px solid var(--color-separator);
+      }
+
+      .chat-input-wrapper {
+        display: flex;
+        gap: var(--space-4);
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: var(--space-4);
+        font-size: var(--font-size-body);
+        font-family: inherit;
+        background: var(--color-background);
+        border: 1px solid var(--color-separator);
+        border-radius: var(--radius-large);
+        color: var(--color-label-primary);
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+      }
+
+      .chat-input:focus {
+        outline: 2px solid var(--color-accent-blue);
+        outline-offset: 0;
+        border-color: var(--color-accent-blue);
+      }
+
+      .chat-send-btn {
+        background: var(--color-accent-blue);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--radius-large);
+        padding: var(--space-4) var(--space-6);
+        font-size: var(--font-size-body);
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity var(--duration-normal) var(--ease-apple);
+        min-width: 80px;
+      }
+
+      .chat-send-btn:hover:not(:disabled) {
+        opacity: 0.8;
+      }
+
+      .chat-send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .chat-loading {
+        display: none;
+        text-align: center;
+        padding: var(--space-4);
+        color: var(--color-label-secondary);
+        font-size: var(--font-size-subheadline);
+      }
+
+      .chat-loading.active {
+        display: block;
+      }
     </style>
   </head>
   <body>
@@ -680,6 +881,49 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
     </section>
 
     <!-- ============================================
+         CHAT SECTION
+         ============================================ -->
+    <section class="chat-section">
+      <div class="container">
+        <div class="chat-container">
+          <div class="chat-header">
+            <h3>💬 未来の自分と対話する</h3>
+          </div>
+
+          <div class="chat-messages" id="chatMessages">
+            <!-- チャット履歴がここに表示される -->
+          </div>
+
+          <div class="chat-suggested-questions">
+            <p>よく聞かれる質問:</p>
+            <div class="chat-suggestions" id="chatSuggestions">
+              <button class="chat-suggestion-btn" data-question="今日から始められることは何ですか？">今日から始められることは何ですか？</button>
+              <button class="chat-suggestion-btn" data-question="一番大変だったことは何ですか？">一番大変だったことは何ですか？</button>
+              <button class="chat-suggestion-btn" data-question="3年間で一番変わったことは何ですか？">3年間で一番変わったことは何ですか？</button>
+              <button class="chat-suggestion-btn" data-question="今の私に一番伝えたいことは？">今の私に一番伝えたいことは？</button>
+            </div>
+          </div>
+
+          <div class="chat-loading" id="chatLoading">
+            返信を生成中...
+          </div>
+
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <textarea
+                class="chat-input"
+                id="chatInput"
+                placeholder="未来の自分に質問してみましょう..."
+                rows="1"
+              ></textarea>
+              <button class="chat-send-btn" id="chatSendBtn">送信</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
          FOOTER
          ============================================ -->
     <footer>
@@ -690,7 +934,7 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
     </footer>
 
     <!-- ============================================
-         JAVASCRIPT - Scroll Animations
+         JAVASCRIPT - Scroll Animations & Chat
          ============================================ -->
     <script>
       // Intersection Observer for scroll animations
@@ -712,6 +956,110 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
       // Observe all animatable elements
       const animateElements = document.querySelectorAll('.animate-on-scroll');
       animateElements.forEach(el => observer.observe(el));
+
+      // ============================================
+      // CHAT FUNCTIONALITY
+      // ============================================
+      const RECORD_ID = '${safeRecordId}';
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
+      const chatLoading = document.getElementById('chatLoading');
+      const chatSuggestions = document.querySelectorAll('.chat-suggestion-btn');
+
+      // メッセージを追加する関数
+      function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message' + (isUser ? ' user' : '');
+
+        const avatar = document.createElement('div');
+        avatar.className = 'chat-avatar';
+        avatar.textContent = isUser ? '私' : '未来';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+
+        const p = document.createElement('p');
+        p.textContent = content;
+        bubble.appendChild(p);
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // メッセージ送信関数
+      async function sendMessage(message) {
+        if (!message.trim()) return;
+
+        // ユーザーのメッセージを表示
+        addMessage(message, true);
+        chatInput.value = '';
+        chatInput.disabled = true;
+        chatSendBtn.disabled = true;
+        chatLoading.classList.add('active');
+
+        try {
+          const response = await fetch(\`/api/chat/\${RECORD_ID}\`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+          });
+
+          if (!response.ok) {
+            throw new Error(\`HTTP error! status: \${response.status}\`);
+          }
+
+          const data = await response.json();
+
+          if (data.success && data.reply) {
+            // AIの返信を表示
+            addMessage(data.reply, false);
+          } else {
+            throw new Error('返信の生成に失敗しました');
+          }
+        } catch (error) {
+          console.error('Chat error:', error);
+          addMessage('エラーが発生しました。もう一度お試しください。', false);
+        } finally {
+          chatInput.disabled = false;
+          chatSendBtn.disabled = false;
+          chatLoading.classList.remove('active');
+          chatInput.focus();
+        }
+      }
+
+      // 送信ボタンのイベントリスナー
+      chatSendBtn.addEventListener('click', () => {
+        sendMessage(chatInput.value);
+      });
+
+      // Enterキーで送信（Shift+Enterで改行）
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage(chatInput.value);
+        }
+      });
+
+      // 自動リサイズ
+      chatInput.addEventListener('input', () => {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+      });
+
+      // 提案された質問のクリックイベント
+      chatSuggestions.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const question = btn.dataset.question;
+          chatInput.value = question;
+          sendMessage(question);
+        });
+      });
     </script>
   </body>
 </html>`;
