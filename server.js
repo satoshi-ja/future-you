@@ -197,7 +197,81 @@ app.post('/api/chat/:recordId', async (req, res) => {
   }
 });
 
+// ========================================
+// ChatKit関連エンドポイント（新規追加）
+// ========================================
+
+// ChatKitセッション作成
+app.post('/api/chatkit/session', async (req, res) => {
+  try {
+    const { recordId } = req.body;
+
+    if (!recordId) {
+      return res.status(400).json({ error: 'recordIdが必要です' });
+    }
+
+    // レコードからペルソナ情報を取得
+    const record = await FutureYouMessage.findById(recordId);
+    if (!record) {
+      return res.status(404).json({ error: 'レコードが見つかりません' });
+    }
+
+    if (record.status !== 'completed') {
+      return res.status(400).json({
+        error: '動画生成が完了していません。先に動画を生成してください。'
+      });
+    }
+
+    console.log('📱 ChatKitセッション作成開始:', recordId);
+
+    // ChatKitセッション作成（直接HTTPリクエスト）
+    const response = await fetch('https://api.openai.com/v1/chatkit/sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'OpenAI-Beta': 'chatkit_beta=v1'
+      },
+      body: JSON.stringify({
+        workflow: {
+          id: process.env.CHATKIT_WORKFLOW_ID
+        },
+        user: `user_${recordId}`,
+        chatkit_configuration: {
+          file_upload: {
+            enabled: false
+          }
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`ChatKit API error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    const session = await response.json();
+    console.log('✅ ChatKitセッション作成成功:', session.id);
+
+    res.json({
+      client_secret: session.client_secret,
+      session_id: session.id,
+      expires_after: session.expires_after
+    });
+
+  } catch (error) {
+    console.error('❌ ChatKitセッション作成エラー:', error);
+    res.status(500).json({
+      error: 'セッション作成に失敗しました',
+      details: error.message
+    });
+  }
+});
+
+// ========================================
 // ヘルスチェックAPI
+// ========================================
+
 app.get('/api/health', (req, res) => {
   const dbStatus = getConnectionStatus();
   res.json({
@@ -207,6 +281,10 @@ app.get('/api/health', (req, res) => {
       connected: dbStatus.isConnected,
       readyState: dbStatus.readyState,
     },
+    chatkit: {
+      enabled: !!process.env.CHATKIT_WORKFLOW_ID,
+      workflowId: process.env.CHATKIT_WORKFLOW_ID ? '設定済み' : '未設定'
+    }
   });
 });
 

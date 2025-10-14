@@ -70,6 +70,13 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Future You — ${nickname}</title>
     <meta name="description" content="${nickname} さんへ、3年後の自分からのメッセージ">
+
+    <!-- ChatKit JS SDK -->
+    <script
+      src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js"
+      async
+    ></script>
+
     <style>
       /* ============================================
          🍎 Apple HIG Design System v2 - Result Page
@@ -1173,6 +1180,54 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
       }
 
       /* ============================================
+         CHATKIT FAB (新規)
+         ============================================ */
+      .chatkit-fab {
+        bottom: 120px !important; /* 既存FABの上に配置 */
+        background: linear-gradient(135deg, #007AFF 0%, #5AC8FA 100%) !important;
+        box-shadow: 0 8px 28px rgba(0, 122, 255, 0.35),
+                    0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        animation: fabPulse 3s ease-in-out infinite, fabFadeIn 0.3s ease-out 0.3s backwards !important;
+      }
+
+      .chatkit-fab:hover {
+        transform: scale(1.08) rotate(5deg) !important;
+        box-shadow: 0 12px 36px rgba(0, 122, 255, 0.45),
+                    0 6px 16px rgba(0, 0, 0, 0.2) !important;
+      }
+
+      @media (max-width: 733px) {
+        .chatkit-fab {
+          bottom: 100px !important;
+        }
+      }
+
+      /* ChatKitコンテナ */
+      .chatkit-container {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 420px;
+        max-width: 100%;
+        height: 100vh;
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+      }
+
+      .chatkit-container.active {
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      @media (max-width: 768px) {
+        .chatkit-container {
+          width: 100%;
+        }
+      }
+
+      /* ============================================
          SLIDE-IN CHAT PANEL
          ============================================ */
       .chat-panel {
@@ -1750,10 +1805,18 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
     <!-- ============================================
          FLOATING ACTION BUTTON (FAB)
          ============================================ -->
+    <!-- 既存チャット FAB -->
     <button id="chatFab" class="chat-fab" aria-label="未来の自分と話す" tabindex="0">
       <span class="fab-icon">💬</span>
       <span class="fab-ripple"></span>
       <span class="fab-tooltip">未来の自分と話す</span>
+    </button>
+
+    <!-- ChatKit FAB (新規) -->
+    <button id="chatkitFab" class="chat-fab chatkit-fab" aria-label="AI+チャット（ベータ版）" tabindex="0">
+      <span class="fab-icon">🤖</span>
+      <span class="fab-ripple"></span>
+      <span class="fab-tooltip">AI+チャット（ベータ版）</span>
     </button>
 
     <!-- ============================================
@@ -1956,6 +2019,171 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && chatModal.classList.contains('active')) {
           closeModal();
+        }
+      });
+
+      // ========================================
+      // ChatKit統合（新規追加）
+      // ========================================
+
+      let chatkitInstance = null;
+      const chatkitFab = document.getElementById('chatkitFab');
+      const chatkitEnabled = ${process.env.CHATKIT_ENABLED === 'true' ? 'true' : 'false'};
+
+      // ChatKitが無効な場合はボタンを非表示
+      if (!chatkitEnabled && chatkitFab) {
+        chatkitFab.style.display = 'none';
+      }
+
+      // ChatKitモーダルを開く
+      async function openChatkitModal() {
+        if (!chatkitEnabled) {
+          alert('ChatKit機能は現在無効です');
+          return;
+        }
+
+        // recordIdを取得
+        const recordId = RECORD_ID;
+        if (!recordId) {
+          alert('動画が生成されていません。先に動画を生成してください。');
+          return;
+        }
+
+        // 既存チャットを閉じる
+        closeModal();
+
+        try {
+          console.log('🤖 ChatKitセッション作成開始');
+
+          // セッション作成API呼び出し
+          const response = await fetch('/api/chatkit/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ recordId })
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'セッション作成に失敗しました');
+          }
+
+          const { client_secret, session_id } = await response.json();
+          console.log('✅ ChatKitセッション作成成功:', session_id);
+
+          // ChatKitコンテナ作成（初回のみ）
+          if (!chatkitInstance) {
+            // コンテナ要素作成
+            const chatkitContainer = document.createElement('div');
+            chatkitContainer.id = 'chatkit-container';
+            chatkitContainer.className = 'chatkit-container';
+            document.body.appendChild(chatkitContainer);
+
+            // ChatKitウィジェット作成
+            const chatkitWidget = document.createElement('openai-chatkit');
+            chatkitWidget.id = 'chatkit-widget';
+            chatkitWidget.classList.add('h-full', 'w-full');
+
+            // setOptionsメソッドで設定
+            chatkitWidget.setOptions({
+              api: {
+                async getClientSecret(existingSecret) {
+                  // 既存のセッションがある場合はリフレッシュ
+                  if (existingSecret) {
+                    console.log('🔄 ChatKitセッションリフレッシュ');
+                    const response = await fetch('/api/chatkit/session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ recordId: RECORD_ID })
+                    });
+                    const data = await response.json();
+                    return data.client_secret;
+                  }
+                  return client_secret;
+                }
+              }
+            });
+
+            chatkitContainer.appendChild(chatkitWidget);
+
+            // イベントリスナー設定
+            chatkitWidget.addEventListener('close', () => {
+              console.log('👋 ChatKitクローズ');
+              closeChatkitModal();
+            });
+
+            chatkitWidget.addEventListener('error', (e) => {
+              console.error('❌ ChatKitエラー:', e.detail);
+            });
+
+            chatkitInstance = chatkitWidget;
+            console.log('✅ ChatKit初期化完了');
+          } else {
+            // 既存ウィジェットのclient_secretを更新
+            chatkitInstance.setOptions({
+              api: {
+                async getClientSecret(existingSecret) {
+                  if (existingSecret) {
+                    console.log('🔄 ChatKitセッションリフレッシュ');
+                    const response = await fetch('/api/chatkit/session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ recordId: RECORD_ID })
+                    });
+                    const data = await response.json();
+                    return data.client_secret;
+                  }
+                  return client_secret;
+                }
+              }
+            });
+            console.log('🔄 ChatKitセッション更新');
+          }
+
+          // モーダル表示
+          const container = document.getElementById('chatkit-container');
+          if (container) {
+            container.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            console.log('📱 ChatKitモーダル表示');
+          }
+
+        } catch (error) {
+          console.error('❌ ChatKit起動エラー:', error);
+          alert('チャットの起動に失敗しました: ' + error.message);
+        }
+      }
+
+      // ChatKitモーダルを閉じる
+      function closeChatkitModal() {
+        const container = document.getElementById('chatkit-container');
+        if (container) {
+          container.classList.remove('active');
+          document.body.style.overflow = '';
+          console.log('📱 ChatKitモーダル非表示');
+        }
+      }
+
+      // ChatKit FABクリック
+      if (chatkitFab) {
+        chatkitFab.addEventListener('click', openChatkitModal);
+
+        chatkitFab.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openChatkitModal();
+          }
+        });
+      }
+
+      // ESCキーでChatKitも閉じる
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const chatkitContainer = document.getElementById('chatkit-container');
+          if (chatkitContainer && chatkitContainer.classList.contains('active')) {
+            closeChatkitModal();
+          }
         }
       });
     </script>
