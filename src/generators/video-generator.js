@@ -35,34 +35,57 @@ export async function generateVideo(prompt) {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseUrl = 'https://api.openai.com/v1/videos';
 
-  // Create video generation job
+  // Create video generation job with retry on 503
   let video;
-  try {
-    // Use FormData for multipart/form-data
-    const formData = new FormData();
-    formData.append('model', soraModel);
-    formData.append('prompt', prompt);
-    formData.append('size', '1280x720');
-    formData.append('seconds', '8');
+  const maxCreateRetries = 5;
 
-    const createResponse = await fetchWithRetry(baseUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`
-        // Note: Don't set Content-Type header, let fetch set it automatically with boundary
-      },
-      body: formData
-    });
+  for (let attempt = 0; attempt < maxCreateRetries; attempt++) {
+    try {
+      // Use FormData for multipart/form-data
+      const formData = new FormData();
+      formData.append('model', soraModel);
+      formData.append('prompt', prompt);
+      formData.append('size', '1280x720');
+      formData.append('seconds', '8');
 
-    if (!createResponse.ok) {
-      const errorData = await createResponse.json().catch(() => ({}));
-      throw new Error(`動画生成ジョブの作成に失敗しました: ${createResponse.status} ${errorData.error?.message || createResponse.statusText}`);
+      const createResponse = await fetchWithRetry(baseUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+          // Note: Don't set Content-Type header, let fetch set it automatically with boundary
+        },
+        body: formData
+      });
+
+      if (!createResponse.ok) {
+        const errorData = await createResponse.json().catch(() => ({}));
+
+        // 503エラーの場合はリトライ
+        if (createResponse.status === 503) {
+          const waitTime = Math.min(5000 * Math.pow(2, attempt), 30000);
+          console.log(`   ⚠️  OpenAI API一時的に利用不可（503）- ${waitTime/1000}秒後にリトライします (試行 ${attempt + 1}/${maxCreateRetries})...`);
+          await sleep(waitTime);
+          continue;
+        }
+
+        throw new Error(`動画生成ジョブの作成に失敗しました: ${createResponse.status} ${errorData.error?.message || createResponse.statusText}`);
+      }
+
+      video = await createResponse.json();
+      break; // 成功したらループを抜ける
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+
+      // 最後の試行でエラーの場合のみthrow
+      if (attempt === maxCreateRetries - 1) {
+        throw new Error(`動画生成ジョブの作成に失敗しました: ${message}`);
+      }
+
+      // 503以外のエラーの場合は即座にthrow
+      if (!message.includes('503')) {
+        throw new Error(`動画生成ジョブの作成に失敗しました: ${message}`);
+      }
     }
-
-    video = await createResponse.json();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`動画生成ジョブの作成に失敗しました: ${message}`);
   }
 
   console.log(`   動画ジョブ作成: ${video.id}`);
@@ -89,12 +112,28 @@ export async function generateVideo(prompt) {
 
       if (!statusResponse.ok) {
         const errorData = await statusResponse.json().catch(() => ({}));
+
+        // 500エラーの場合は5秒待ってリトライ（最大3回）
+        if (statusResponse.status === 500) {
+          console.log(`\n   ⚠️  OpenAI APIエラー（500）- 5秒後にリトライします...`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          continue; // ループを続ける
+        }
+
         throw new Error(`動画ステータスの取得に失敗しました: ${statusResponse.status} ${errorData.error?.message || statusResponse.statusText}`);
       }
 
       video = await statusResponse.json();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
+
+      // ネットワークエラーの場合も5秒待ってリトライ
+      if (message.includes('fetch') || message.includes('network')) {
+        console.log(`\n   ⚠️  ネットワークエラー - 5秒後にリトライします...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        continue;
+      }
+
       throw new Error(`動画ステータスの取得に失敗しました: ${message}`);
     }
 

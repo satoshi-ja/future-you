@@ -1214,6 +1214,7 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
         transform: translateX(100%);
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
+        background: var(--color-background);
       }
 
       .chatkit-container.active {
@@ -1224,6 +1225,258 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
       @media (max-width: 768px) {
         .chatkit-container {
           width: 100%;
+        }
+      }
+
+      /* ChatKit Overlay */
+      .chatkit-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s var(--ease-apple);
+      }
+
+      .chatkit-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* ChatKit Header - Premium Design */
+      .chatkit-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        min-height: 100px;
+        height: auto;
+        background: linear-gradient(135deg, 
+          #007AFF 0%, 
+          #0051D5 50%, 
+          #D4A574 100%);
+        padding: 20px 20px 20px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        z-index: 10002;
+        box-shadow: 0 4px 24px rgba(0, 122, 255, 0.2),
+                    0 2px 8px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        animation: slideDownFade 0.5s var(--ease-apple) both;
+      }
+
+      @keyframes slideDownFade {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .chatkit-header-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .chatkit-header-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4),
+                    0 2px 8px rgba(255, 165, 0, 0.3),
+                    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        position: relative;
+        animation: avatarPulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+        margin-right: 4px;
+      }
+
+      .chatkit-header-avatar::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+        animation: avatarRing 3s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes avatarPulse {
+        0%, 100% {
+          box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4),
+                      0 2px 8px rgba(255, 165, 0, 0.3),
+                      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        }
+        50% {
+          box-shadow: 0 6px 24px rgba(255, 215, 0, 0.6),
+                      0 3px 12px rgba(255, 165, 0, 0.4),
+                      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        }
+      }
+
+      @keyframes avatarRing {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 0.3;
+        }
+        50% {
+          transform: scale(1.15);
+          opacity: 0.15;
+        }
+      }
+
+      .chatkit-header-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .chatkit-header-text h3 {
+        color: #ffffff;
+        font-size: 17px;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.01em;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        line-height: 1.3;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      .chatkit-header-text p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+        font-weight: 500;
+        margin: 0;
+        letter-spacing: 0;
+        line-height: 1.5;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      /* ChatKit Close Button - Refined */
+      .chatkit-close-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10003;
+        transition: all var(--duration-fast) var(--ease-apple);
+        flex-shrink: 0;
+        margin-left: 8px;
+        align-self: flex-start;
+        margin-top: 4px;
+      }
+
+      .chatkit-close-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: scale(1.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .chatkit-close-btn:active {
+        transform: scale(0.92);
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .chatkit-close-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: #ffffff;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+      }
+
+      /* モバイル最適化 */
+      @media (max-width: 768px) {
+        .chatkit-header {
+          min-height: 90px;
+          padding: 16px;
+          gap: 8px;
+        }
+
+        .chatkit-header-content {
+          gap: 12px;
+        }
+
+        .chatkit-header-avatar {
+          width: 48px;
+          height: 48px;
+          font-size: 26px;
+          margin-right: 0;
+        }
+
+        .chatkit-header-text h3 {
+          font-size: 15px;
+          line-height: 1.3;
+        }
+
+        .chatkit-header-text p {
+          font-size: 12px;
+          line-height: 1.4;
+        }
+
+        .chatkit-close-btn {
+          width: 32px;
+          height: 32px;
+          margin-left: 4px;
+        }
+
+        .chatkit-close-btn svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      /* ChatKit Widget Container */
+      #chatkit-widget {
+        position: absolute;
+        top: 100px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: calc(100% - 100px);
+        z-index: 10001;
+      }
+
+      @media (max-width: 768px) {
+        #chatkit-widget {
+          top: 90px;
+          height: calc(100% - 90px);
         }
       }
 
@@ -1813,10 +2066,10 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
     </button>
 
     <!-- ChatKit FAB (新規) -->
-    <button id="chatkitFab" class="chat-fab chatkit-fab" aria-label="AI+チャット（ベータ版）" tabindex="0">
+    <button id="chatkitFab" class="chat-fab chatkit-fab" aria-label="ビジネスリーダーに相談する" tabindex="0">
       <span class="fab-icon">🤖</span>
       <span class="fab-ripple"></span>
-      <span class="fab-tooltip">AI+チャット（ベータ版）</span>
+      <span class="fab-tooltip">ビジネスリーダーに相談する</span>
     </button>
 
     <!-- ============================================
@@ -2074,11 +2327,45 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
 
           // ChatKitコンテナ作成（初回のみ）
           if (!chatkitInstance) {
+            // オーバーレイ作成
+            const overlay = document.createElement('div');
+            overlay.id = 'chatkit-overlay';
+            overlay.className = 'chatkit-overlay';
+            overlay.addEventListener('click', closeChatkitModal);
+            document.body.appendChild(overlay);
+
             // コンテナ要素作成
             const chatkitContainer = document.createElement('div');
             chatkitContainer.id = 'chatkit-container';
             chatkitContainer.className = 'chatkit-container';
             document.body.appendChild(chatkitContainer);
+
+             // ヘッダー作成
+             const header = document.createElement('div');
+             header.className = 'chatkit-header';
+             header.innerHTML = \`
+               <div class="chatkit-header-content">
+                 <div class="chatkit-header-avatar">💛</div>
+                 <div class="chatkit-header-text">
+                   <h3>マルチバースAI会議</h3>
+                   <p>6人のビジネスリーダーがあなたの悩みについて議論します</p>
+                 </div>
+               </div>
+             \`;
+
+            // 閉じるボタンを追加
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'chatkit-close-btn';
+            closeBtn.setAttribute('aria-label', '閉じる');
+            closeBtn.innerHTML = \`
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            \`;
+            closeBtn.addEventListener('click', closeChatkitModal);
+            header.appendChild(closeBtn);
+
+            chatkitContainer.appendChild(header);
 
             // ChatKitウィジェット作成
             const chatkitWidget = document.createElement('openai-chatkit');
@@ -2143,10 +2430,16 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
 
           // モーダル表示
           const container = document.getElementById('chatkit-container');
+          const overlay = document.getElementById('chatkit-overlay');
+
           if (container) {
             container.classList.add('active');
             document.body.style.overflow = 'hidden';
             console.log('📱 ChatKitモーダル表示');
+          }
+
+          if (overlay) {
+            overlay.classList.add('visible');
           }
 
         } catch (error) {
@@ -2158,10 +2451,16 @@ export function generateHTMLPage({ formData, persona, scenario, article, videoUr
       // ChatKitモーダルを閉じる
       function closeChatkitModal() {
         const container = document.getElementById('chatkit-container');
+        const overlay = document.getElementById('chatkit-overlay');
+
         if (container) {
           container.classList.remove('active');
           document.body.style.overflow = '';
           console.log('📱 ChatKitモーダル非表示');
+        }
+
+        if (overlay) {
+          overlay.classList.remove('visible');
         }
       }
 
